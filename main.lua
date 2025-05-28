@@ -1,237 +1,150 @@
-local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local RunService = game:GetService("RunService")
+--== Loader UI ==--
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Frame = Instance.new("Frame", ScreenGui)
+local UICorner = Instance.new("UICorner", Frame)
+local UIStroke = Instance.new("UIStroke", Frame)
+local UIGradient = Instance.new("UIGradient", Frame)
+local Spinner = Instance.new("ImageLabel", Frame)
+local ProgressBarBG = Instance.new("Frame", Frame)
+local ProgressBar = Instance.new("Frame", ProgressBarBG)
+local TextLabel = Instance.new("TextLabel", Frame)
 
--- สร้าง ScreenGui สำหรับ Loading Screen
-local loadingGui = Instance.new("ScreenGui")
-loadingGui.Name = "LoadingGui"
-loadingGui.ResetOnSpawn = false
-loadingGui.Parent = playerGui
-
--- Background สีดำโปร่งแสงพร้อมเบลอ
-local bg = Instance.new("Frame")
-bg.Size = UDim2.new(1, 0, 1, 0)
-bg.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-bg.BackgroundTransparency = 0.75
-bg.Parent = loadingGui
-
--- เบลอ Background (ต้องใช้ Lighting หรือ Effects API)
-local blurEffect = Instance.new("BlurEffect")
-blurEffect.Size = 8
-blurEffect.Parent = game.Lighting
-
--- วงกลมหมุนแบบวงแหวนโปร่งใส พร้อมไล่สี Gradient
-local spinnerFrame = Instance.new("Frame")
-spinnerFrame.Size = UDim2.new(0, 100, 0, 100)
-spinnerFrame.Position = UDim2.new(0.5, -50, 0.4, -50)
-spinnerFrame.BackgroundTransparency = 1
-spinnerFrame.Parent = loadingGui
-
--- วงแหวนวงนอก (วงกลมเส้นหนาโปร่งแสง)
-local outerRing = Instance.new("ImageLabel")
-outerRing.Size = UDim2.new(1, 0, 1, 0)
-outerRing.BackgroundTransparency = 1
-outerRing.Image = "rbxassetid://11406473919"  -- วงแหวนโปร่งแสงแบบวงกลม
-outerRing.ImageColor3 = Color3.fromRGB(0, 170, 255)
-outerRing.Parent = spinnerFrame
-
--- วงแหวนวงใน (สีไล่ Gradient แบบวงกลม หมุนเร็วกว่า)
-local innerRing = Instance.new("ImageLabel")
-innerRing.Size = UDim2.new(0.75, 0, 0.75, 0)
-innerRing.Position = UDim2.new(0.125, 0, 0.125, 0)
-innerRing.BackgroundTransparency = 1
-innerRing.Image = "rbxassetid://11406473919"
-innerRing.ImageColor3 = Color3.fromRGB(0, 255, 255)
-innerRing.Parent = spinnerFrame
-
--- เอฟเฟกต์ UICorner ให้วงกลมดูนุ่มนวล (ถ้าต้องการ)
-local outerCorner = Instance.new("UICorner")
-outerCorner.CornerRadius = UDim.new(1,0)
-outerCorner.Parent = outerRing
-
-local innerCorner = Instance.new("UICorner")
-innerCorner.CornerRadius = UDim.new(1,0)
-innerCorner.Parent = innerRing
-
--- ข้อความสถานะโหลด ที่เปลี่ยนคำพูดไปเรื่อยๆ
-local statusLabel = Instance.new("TextLabel")
-statusLabel.Size = UDim2.new(0.6, 0, 0, 30)
-statusLabel.Position = UDim2.new(0.5, -150, 0.65, 0)
-statusLabel.BackgroundTransparency = 1
-statusLabel.TextColor3 = Color3.fromRGB(170, 220, 255)
-statusLabel.Font = Enum.Font.GothamBold
-statusLabel.TextSize = 22
-statusLabel.Text = "กำลังโหลด..."
-statusLabel.Parent = loadingGui
-
--- หลอดความสำเร็จ (Progress Bar) พร้อมไล่สี Gradient
-local progressBg = Instance.new("Frame")
-progressBg.Size = UDim2.new(0.6, 0, 0, 25)
-progressBg.Position = UDim2.new(0.5, -150, 0.75, 0)
-progressBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-progressBg.BorderSizePixel = 0
-progressBg.Parent = loadingGui
-progressBg.AnchorPoint = Vector2.new(0,0)
-local bgCorner = Instance.new("UICorner")
-bgCorner.CornerRadius = UDim.new(0, 15)
-bgCorner.Parent = progressBg
-
-local progressBar = Instance.new("Frame")
-progressBar.Size = UDim2.new(0, 0, 1, 0)
-progressBar.Position = UDim2.new(0, 0, 0, 0)
-progressBar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-progressBar.BorderSizePixel = 0
-progressBar.Parent = progressBg
-
-local barCorner = Instance.new("UICorner")
-barCorner.CornerRadius = UDim.new(0, 15)
-barCorner.Parent = progressBar
-
--- สร้าง UIGradient ให้ progressBar ไล่สีสวยงาม
-local gradient = Instance.new("UIGradient")
-gradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 255)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 170, 255)),
-}
-gradient.Rotation = 90
-gradient.Parent = progressBar
-
--- หมุนวงกลมด้วยความเร็วต่างกัน
-local running = true
-local lastTime = tick()
-
-local function onRenderStep()
-    if not running then return end
-    local now = tick()
-    local dt = now - lastTime
-    lastTime = now
-    outerRing.Rotation = outerRing.Rotation + 120 * dt -- หมุนช้า
-    innerRing.Rotation = innerRing.Rotation - 240 * dt -- หมุนเร็วและทิศทางตรงกันข้าม
-end
-
-local connection = RunService.RenderStepped:Connect(onRenderStep)
-
--- ข้อความเปลี่ยนตามเวลาระหว่างโหลด
-local loadingMessages = {
-    "กำลังโหลด...",
-    "เชื่อมต่อเซิร์ฟเวอร์...",
-    "กำลังดึงข้อมูล...",
-    "เตรียมพร้อมระบบ...",
-    "โหลดเสร็จเร็วๆ นี้..."
+ScreenGui.ResetOnSpawn = false
+Frame.Size = UDim2.new(0, 400, 0, 180)
+Frame.Position = UDim2.new(0.5, -200, 0.5, -90)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+UIStroke.Color = Color3.fromRGB(0, 170, 255)
+UIGradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50))
 }
 
--- ฟังก์ชันเพิ่ม progress bar ค่อยๆ เติม และเปลี่ยนข้อความ
-local progress = 0
-local messageIndex = 1
-local function incrementProgress(amount)
-    progress = math.clamp(progress + amount, 0, 1)
-    progressBar.Size = UDim2.new(progress, 0, 1, 0)
-    -- เปลี่ยนข้อความทุก 20%
-    local newIndex = math.floor(progress * #loadingMessages) + 1
-    if newIndex ~= messageIndex and newIndex <= #loadingMessages then
-        messageIndex = newIndex
-        statusLabel.Text = loadingMessages[messageIndex]
-    end
-end
+Spinner.Size = UDim2.new(0, 40, 0, 40)
+Spinner.Position = UDim2.new(0.5, -20, 0, 10)
+Spinner.BackgroundTransparency = 1
+Spinner.Image = "rbxassetid://12820402706"
 
--- ฟังก์ชัน fade out loading screen อย่างนุ่มนวล
-local function fadeOutLoading()
-    for i = 1, 20 do
-        loadingGui.Enabled = true
-        bg.BackgroundTransparency = bg.BackgroundTransparency + 0.035
-        statusLabel.TextTransparency = statusLabel.TextTransparency + 0.05
-        progressBg.BackgroundTransparency = progressBg.BackgroundTransparency + 0.05
-        progressBar.BackgroundTransparency = progressBar.BackgroundTransparency + 0.05
-        outerRing.ImageTransparency = outerRing.ImageTransparency + 0.05
-        innerRing.ImageTransparency = innerRing.ImageTransparency + 0.05
-        task.wait(0.03)
-    end
-    loadingGui.Enabled = false
-    blurEffect:Destroy()
-end
+ProgressBarBG.Size = UDim2.new(0.8, 0, 0, 10)
+ProgressBarBG.Position = UDim2.new(0.1, 0, 0.7, 0)
+ProgressBarBG.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+ProgressBar.Size = UDim2.new(0, 0, 1, 0)
+ProgressBar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+ProgressBar.Parent = ProgressBarBG
 
--- จำลองการโหลด UI หลัก (ใช้เวลาประมาณ 3.5 วินาที)
-for i = 1, 70 do
-    incrementProgress(1/70)
-    task.wait(0.05)
-end
+TextLabel.Size = UDim2.new(1, 0, 0, 50)
+TextLabel.Position = UDim2.new(0, 0, 1, -50)
+TextLabel.BackgroundTransparency = 1
+TextLabel.Text = "ZEN X HUB กำลังโหลด..."
+TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.TextScaled = true
+TextLabel.Font = Enum.Font.GothamBold
 
-running = false
-connection:Disconnect()
+--== Animation ==--
+local TweenService = game:GetService("TweenService")
+TweenService:Create(Spinner, TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {
+	Rotation = 360
+}):Play()
 
--- จางหน้าโหลดออกอย่างนุ่มนวล
-fadeOutLoading()
+TweenService:Create(ProgressBar, TweenInfo.new(2), {
+	Size = UDim2.new(1, 0, 1, 0)
+}):Play()
 
--- *** สร้าง UI หลักของคุณตรงนี้ ***
+wait(2.5)
+ScreenGui:Destroy()
 
--- ตัวอย่างสร้าง Fluent UI (เหมือนเดิม)
+--== Load Fluent ==--
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "ZEN X HUB",
-    SubTitle = "Blox Fruits Script by Tanongtuay",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
-    Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl
+	Title = "ZEN X HUB",
+	SubTitle = "Blox Fruits Script by Tanongtuay",
+	TabWidth = 160,
+	Size = UDim2.fromOffset(580, 460),
+	Acrylic = true,
+	Theme = "Dark",
+	MinimizeKey = Enum.KeyCode.LeftControl
 })
 
--- สร้าง Tabs ต่างๆ เหมือนโค้ดก่อนหน้า ...
--- (ใส่โค้ด UI หลักทั้งหมดของคุณที่นี่เหมือนโค้ดก่อนหน้า)
+local Tabs = {
+	AutoFarm = Window:AddTab({ Title = "⚔️ AutoFarm", Icon = "swords" }),
+	Teleport = Window:AddTab({ Title = "🌍 Teleport", Icon = "map" }),
+	Misc = Window:AddTab({ Title = "🧰 Misc", Icon = "package" }),
+	Settings = Window:AddTab({ Title = "⚙️ Settings", Icon = "settings" })
+}
 
--- ปุ่มเปิด/ปิด UI แบบแทน LeftControl
-local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+--== ปุ่ม UI เปิดปิด ==--
+local toggleBtn = Instance.new("TextButton", game:GetService("CoreGui"))
+toggleBtn.Size = UDim2.new(0, 40, 0, 40)
+toggleBtn.Position = UDim2.new(0, 20, 0, 120)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+toggleBtn.Text = "≡"
+toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 20
+toggleBtn.Active = true
+toggleBtn.Draggable = true
 
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ZenToggleGui"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = playerGui
+local corner = Instance.new("UICorner", toggleBtn)
+corner.CornerRadius = UDim.new(0, 8)
 
-local icon = Instance.new("TextButton")
-icon.Size = UDim2.new(0, 40, 0, 40)
-icon.Position = UDim2.new(0, 20, 0, 120)
-icon.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-icon.BorderSizePixel = 0
-icon.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-icon.BorderSizePixel = 0
-icon.Text = "≡"
-icon.TextColor3 = Color3.fromRGB(0, 170, 255)
-icon.TextScaled = true
-icon.Font = Enum.Font.GothamBold
-icon.AnchorPoint = Vector2.new(0, 0)
-icon.Active = true
-icon.AutoButtonColor = true
-
--- เพิ่มมุมโค้งให้ปุ่ม
-local iconCorner = Instance.new("UICorner")
-iconCorner.CornerRadius = UDim.new(0, 10)
-iconCorner.Parent = icon
-
-icon.Parent = screenGui
-
--- ฟังก์ชันเปิด/ปิดหน้าต่าง UI
-local uiVisible = true
-
-local function toggleUI()
-    uiVisible = not uiVisible
-    Window.Root.Visible = uiVisible
-end
-
--- กดปุ่มแล้วสลับสถานะ UI
-icon.MouseButton1Click:Connect(function()
-    toggleUI()
+toggleBtn.MouseButton1Click:Connect(function()
+	Window.Minimized = not Window.Minimized
 end)
 
--- ตั้งค่าเริ่มต้นให้ UI แสดง
-Window.Root.Visible = true
+--== เมนูหลัก ==--
+Tabs.AutoFarm:AddButton({
+	Title = "เริ่มฟาร์ม LV",
+	Description = "ระบบจะเริ่มฟาร์มตามเลเวลอัตโนมัติ",
+	Callback = function()
+		print("AutoFarm Started")
+	end
+})
 
--- กดปุ่ม LeftControl บนคีย์บอร์ด ก็สลับ UI เหมือนกัน
-game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.LeftControl then
-        toggleUI()
-    end
+Tabs.AutoFarm:AddDropdown("SelectEnemy", {
+	Title = "เลือกศัตรู",
+	Values = {"Bandit", "Monkey", "Gorilla"},
+	Multi = false,
+	Default = 1,
+	Callback = function(Value)
+		print("Selected Enemy:", Value)
+	end
+})
+
+Tabs.AutoFarm:AddToggle("AutoQuest", {
+	Title = "รับเควสอัตโนมัติ",
+	Default = true
+}):OnChanged(function()
+	print("Auto Quest Toggled:", Fluent.Options.AutoQuest.Value)
 end)
+
+Tabs.Teleport:AddButton({
+	Title = "วาร์ปไปเกาะต่อไป",
+	Description = "ใช้สำหรับเปลี่ยนเกาะฟาร์มเมื่อถึงเลเวลที่กำหนด",
+	Callback = function()
+		print("Teleporting to next island")
+	end
+})
+
+Tabs.Misc:AddParagraph({
+	Title = "ZEN X HUB",
+	Content = "ระบบของเรายังอยู่ระหว่างการพัฒนา ขอบคุณที่ใช้งาน!"
+})
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("ZenXHub")
+SaveManager:SetFolder("ZenXHub/BloxFruits")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+Fluent:Notify({
+	Title = "ZEN X HUB",
+	Content = "Script ได้โหลดแล้ว พร้อมใช้งาน",
+	Duration = 8
+})
+SaveManager:LoadAutoloadConfig()
