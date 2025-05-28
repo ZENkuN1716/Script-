@@ -18,7 +18,8 @@ local Tabs = {
 }
 
 local autoSell = false
-local autoBuy = false
+local autoHarvest = false
+local selectedSeed = "Carrot"
 
 Tabs.Main:AddToggle("AutoSell", {
     Title = "Auto Sell",
@@ -27,25 +28,65 @@ Tabs.Main:AddToggle("AutoSell", {
     autoSell = value
     while autoSell do
         local sell = workspace:FindFirstChild("Sell")
-        if sell then
-            firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, sell, 0)
-            wait(0.2)
-            firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, sell, 1)
+        if sell and game.Players.LocalPlayer.Character then
+            firetouchinterest(game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart"), sell, 0)
+            task.wait(0.1)
+            firetouchinterest(game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart"), sell, 1)
         end
         task.wait(2)
     end
 end)
 
-Tabs.Main:AddToggle("AutoBuy", {
-    Title = "Auto Buy Seed",
+Tabs.Main:AddToggle("AutoHarvest", {
+    Title = "Auto Harvest",
     Default = false
 }):OnChanged(function(value)
-    autoBuy = value
-    while autoBuy do
-        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("BuyItem"):FireServer("Seed")
+    autoHarvest = value
+    while autoHarvest do
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v.Name == "ClickDetector" and v.Parent and v.Parent.Name == "Plant" then
+                fireclickdetector(v)
+            end
+        end
         task.wait(2)
     end
 end)
+
+Tabs.Main:AddDropdown("SeedList", {
+    Title = "Auto Buy Seed",
+    Values = {"Carrot", "Corn", "Tomato", "Pumpkin"},
+    Multi = false,
+    Default = 1,
+    Callback = function(val)
+        selectedSeed = val
+    end
+})
+
+Tabs.Main:AddToggle("AutoBuySeed", {
+    Title = "Auto Buy Selected Seed",
+    Default = false
+}):OnChanged(function(val)
+    while val do
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("BuyItem"):FireServer(selectedSeed)
+        task.wait(2)
+    end
+end)
+
+Tabs.Main:AddButton({
+    Title = "Boost FPS",
+    Callback = function()
+        setfpscap(30)
+        sethiddenproperty(game.Lighting, "Technology", 2)
+        sethiddenproperty(workspace.Terrain, "Decoration", false)
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation") then
+                v.Material = Enum.Material.SmoothPlastic
+                v.Reflectance = 0
+            end
+        end
+        print("Graphics Optimization Applied!")
+    end
+})
 
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
