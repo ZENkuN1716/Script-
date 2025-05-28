@@ -18,9 +18,9 @@ local Window = Fluent:CreateWindow({
     MinimizeKey = Enum.KeyCode.LeftControl
 })
 
--- สร้างแท็บ Aim Bot
+-- สร้างแท็บ Main
 local Tabs = {
-    AimBot = Window:AddTab({ Title = "Aim Bot" }),
+    Main = Window:AddTab({ Title = "Main" }),
 }
 
 -- ตัวแปร AIM BOT
@@ -38,8 +38,8 @@ local function getPlayerNames()
     return names
 end
 
--- สร้าง Dropdown รายชื่อผู้เล่นสำหรับ AimBot
-local playerDropdown = Tabs.AimBot:AddDropdown("PlayerDropdown", {
+-- Dropdown รายชื่อผู้เล่น
+local playerDropdown = Tabs.Main:AddDropdown("PlayerDropdown", {
     Title = "เลือกผู้เล่นล็อกเป้า",
     Values = getPlayerNames(),
     Multi = false,
@@ -49,13 +49,12 @@ local playerDropdown = Tabs.AimBot:AddDropdown("PlayerDropdown", {
     end,
 })
 
--- ปุ่มรีเฟรชรายชื่อผู้เล่น
-Tabs.AimBot:AddButton({
+-- ปุ่มรีเฟรชผู้เล่น
+Tabs.Main:AddButton({
     Title = "รีเฟรชผู้เล่น",
-    Description = "กดเพื่ออัปเดตรายชื่อผู้เล่นในเซิร์ฟเวอร์",
+    Description = "อัปเดตรายชื่อผู้เล่นในเซิร์ฟเวอร์",
     Callback = function()
         playerDropdown:SetValues(getPlayerNames())
-        -- ถ้าผู้เล่นเป้าหมายหายไป ให้เคลียร์ค่า
         if targetPlayerName and not Players:FindFirstChild(targetPlayerName) then
             targetPlayerName = nil
             playerDropdown:SetValue(nil)
@@ -63,7 +62,6 @@ Tabs.AimBot:AddButton({
     end
 })
 
--- อัปเดตรายชื่อผู้เล่นเมื่อมีคนเข้าหรือออกเซิร์ฟเวอร์อัตโนมัติ
 Players.PlayerAdded:Connect(function()
     playerDropdown:SetValues(getPlayerNames())
 end)
@@ -75,15 +73,35 @@ Players.PlayerRemoving:Connect(function()
     end
 end)
 
--- Toggle เปิด/ปิด AIM BOT
-Tabs.AimBot:AddToggle("AimBotToggle", {
+-- Toggle AIMBOT
+Tabs.Main:AddToggle("AimBotToggle", {
     Title = "เปิด/ปิด AIM BOT",
     Default = false,
 }):OnChanged(function(state)
     aimBotEnabled = state
 end)
 
--- ฟังก์ชันล็อกกล้องตามเป้าหมาย
+-- BOOTS FPS Button
+Tabs.Main:AddButton({
+    Title = "BOOTS FPS",
+    Description = "ลดกราฟิก เพิ่มเฟรมเรต",
+    Callback = function()
+        setfpscap(30)
+        sethiddenproperty(game.Lighting, "Technology", 2)
+        sethiddenproperty(workspace.Terrain, "Decoration", false)
+
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation") then
+                v.Material = Enum.Material.SmoothPlastic
+                v.Reflectance = 0
+            end
+        end
+
+        print("Graphics Optimization Applied!")
+    end
+})
+
+-- กล้องเล็งผู้เล่น
 RunService.RenderStepped:Connect(function()
     if aimBotEnabled and targetPlayerName then
         local targetPlayer = Players:FindFirstChild(targetPlayerName)
@@ -91,8 +109,7 @@ RunService.RenderStepped:Connect(function()
             local targetPos = targetPlayer.Character.HumanoidRootPart.Position
             local camPos = Camera.CFrame.Position
             local direction = (targetPos - camPos).Unit
-            local newCFrame = CFrame.new(camPos, camPos + direction)
-            Camera.CFrame = newCFrame
+            Camera.CFrame = CFrame.new(camPos, camPos + direction)
         end
     end
 end)
@@ -103,26 +120,26 @@ InterfaceManager:SetLibrary(Fluent)
 SaveManager:IgnoreThemeSettings()
 SaveManager:SetIgnoreIndexes({})
 InterfaceManager:SetFolder("ZenXHub")
-SaveManager:SetFolder("ZenXHub/AimBot")
-InterfaceManager:BuildInterfaceSection(Tabs.AimBot)
-SaveManager:BuildConfigSection(Tabs.AimBot)
+SaveManager:SetFolder("ZenXHub/Main")
+InterfaceManager:BuildInterfaceSection(Tabs.Main)
+SaveManager:BuildConfigSection(Tabs.Main)
 Window:SelectTab(1)
 
 Fluent:Notify({
     Title = "ZEN X HUB",
-    Content = "Aim Bot พร้อมใช้งาน",
+    Content = "พร้อมใช้งานแล้ว",
     Duration = 6
 })
 
 SaveManager:LoadAutoloadConfig()
 
--- ปุ่มเปิด/ปิด UI แบบลากได้ สำหรับมือถือ
+-- ปุ่มเปิด/ปิด UI แบบลากได้
 local CoreGui = game:GetService("CoreGui")
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 30, 0, 30)
 toggleBtn.Position = UDim2.new(0, 20, 0, 120)
 toggleBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-toggleBtn.Text = "AB"
+toggleBtn.Text = "UI"
 toggleBtn.TextColor3 = Color3.new(1, 1, 1)
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.TextSize = 16
