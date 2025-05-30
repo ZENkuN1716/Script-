@@ -1,3 +1,40 @@
+-- หน้าโหลด ZEN X HUB
+local loadingGui = Instance.new("ScreenGui")
+loadingGui.Name = "ZenXHubLoading"
+loadingGui.ResetOnSpawn = false
+loadingGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+
+local bg = Instance.new("Frame")
+bg.Size = UDim2.new(1, 0, 1, 0)
+bg.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+bg.BorderSizePixel = 0
+bg.Parent = loadingGui
+
+local text = Instance.new("TextLabel")
+text.Size = UDim2.new(1, 0, 0.2, 0)
+text.Position = UDim2.new(0, 0, 0.4, 0)
+text.BackgroundTransparency = 1
+text.Text = "ควยม่อน สคริปกูโน1"
+text.TextColor3 = Color3.fromRGB(255, 255, 255)
+text.TextScaled = true
+text.Font = Enum.Font.GothamBlack
+text.Parent = bg
+
+-- เอฟเฟกต์กระพริบเล็กน้อย
+spawn(function()
+	while wait(0.5) do
+		text.TextTransparency = 0.2
+		wait(0.1)
+		text.TextTransparency = 0
+	end
+end)
+
+-- หน่วงเวลา 3 วินาทีแล้วลบ
+task.delay(3, function()
+	loadingGui:Destroy()
+end)
+
+-- โหลดไลบรารี Fluent และ UI หลัก
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
